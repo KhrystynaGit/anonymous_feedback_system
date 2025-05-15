@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Адмінка</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Адмін панель — Всі відгуки</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Текст</th>
+                <th>Мова</th>
+                <th>Сентимент</th>
+                <th>Спам</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fb in feedbacks %}
+            <tr>
+                <td>{{ fb[0] }}</td>
+                <td>{{ fb[1] }}</td>
+                <td>{{ fb[2] }}</td>
+                <td>{{ fb[3] }}</td>
+                <td>{{ 'Так' if fb[4] else 'Ні' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+jinja2      # Не обов’язково, Python має вбудовану підтримку
+transformers
+torch
+langdetect
+sentencepiece
+protobuf
