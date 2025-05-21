@@ -45,7 +45,7 @@ Simple web app for anonymous collection of feedback with spam detection and sent
    uvicorn app_main:app --reload
    ```
 
-5. Open http://127.0.0.1:8000 in your browser  
+5. Open http://127.0.0.1:8000 in your browser (use https://localhost:8000 with start.bat)
 
 6. Admin panel available at http://127.0.0.1:8000/admin  
    - Default admin username: `admin`  
