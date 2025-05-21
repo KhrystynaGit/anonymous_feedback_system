@@ -1,0 +1,16 @@
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+h1, h2, h3 {
+    color: #0d6efd;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}

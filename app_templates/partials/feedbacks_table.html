@@ -1,0 +1,34 @@
+<table class="table table-striped table-hover">
+  <thead class="table-dark">
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Текст відгуку</th>
+      <th scope="col">Мова</th>
+      <th scope="col">Сентимент</th>
+      <th scope="col">Спам</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% if feedbacks %}
+      {% for fb in feedbacks %}
+        <tr>
+          <td>{{ fb[0] }}</td>
+          <td style="max-width: 500px; white-space: normal;">{{ fb[1] }}</td>
+          <td>{{ fb[2] }}</td>
+          <td>{{ fb[3] }}</td>
+          <td>
+            {% if fb[4] %}
+              <span class="badge bg-danger">Так</span>
+            {% else %}
+              <span class="badge bg-success">Ні</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td colspan="5" class="text-center fst-italic">Відгуків не знайдено</td>
+      </tr>
+    {% endif %}
+  </tbody>
+</table>

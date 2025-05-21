@@ -3,4 +3,7 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.11 (anonimous_system)" />
   </component>
+  <component name="PyPackaging">
+    <option name="earlyReleasesAsUpgrades" value="true" />
+  </component>
 </project>

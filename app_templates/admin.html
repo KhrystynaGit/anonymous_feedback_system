@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Адмінка{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Інституції</h3>
+  <button class="btn btn-primary"
+          hx-get="/admin/add_institution"
+          hx-target="#modal-body"
+          hx-trigger="click"
+          data-bs-toggle="modal" data-bs-target="#modal">
+    Додати нову інституцію
+  </button>
+</div>
+
+<div class="d-flex align-items-center gap-3 mb-3">
+  <select id="institution-select" class="form-select w-auto" hx-target="#feedbacks-table">
+    {% include 'partials/institutions_options.html' %}
+  </select>
+
+  <div id="selected-code" class="fw-bold user-select-all {% if not selected_institution %}hidden{% endif %}"
+       style="cursor:pointer; font-size:1.5rem; display:inline-flex; align-items:center; gap:0.5rem; background:#e9ecef; padding:0.5rem 1rem; border-radius:0.375rem;"
+       title="Клік для копіювання" onclick="copyCode()">
+    <span id="selected-code-text">{{ selected_institution or '' }}</span>
+    <svg id="copy-icon" class="copy-icon {% if not selected_institution %}hidden{% endif %}" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#0d6efd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="user-select:none;">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+  </div>
+
+  <!-- Контейнер для QR-коду без фіксованих розмірів -->
+  <div id="qr-code-container" style="margin-left: 1rem;"></div>
+</div>
+
+<div class="d-flex gap-3 align-items-center mb-3">
+  <select id="spam-filter" class="form-select w-auto" aria-label="Фільтр спаму">
+    <option value="all" selected>Усі+спам</option>
+    <option value="ham">Тільки відгуки</option>
+    <option value="spam">Тільки спам</option>
+  </select>
+
+  <select id="sentiment-filter" class="form-select w-auto" aria-label="Фільтр сентименту">
+    <option value="all" selected>Всі сентименти</option>
+    <option value="positive">Позитивні</option>
+    <option value="negative">Негативні</option>
+    <option value="neutral">Нейтральні</option>
+  </select>
+
+  <select id="length-filter" class="form-select w-auto" aria-label="Фільтр за довжиною">
+    <option value="all" selected>Всі довжини</option>
+    <option value="short">Короткі</option>
+    <option value="long">Довгі</option>
+  </select>
+
+  <select id="order-filter" class="form-select w-auto" aria-label="Порядок сортування">
+    <option value="desc" selected>Останні зверху</option>
+    <option value="asc">Перші зверху</option>
+  </select>
+
+  <button id="refresh-feedbacks" class="btn btn-outline-primary btn-sm">Оновити відгуки</button>
+</div>
+
+<div id="feedbacks-table">
+  {% include 'partials/feedbacks_table.html' %}
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" id="modal-body">
+      <div class="modal-header">
+        <h5 class="modal-title">Додати інституцію</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Форма додавання інституції буде завантажена сюди -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Вийти</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .hidden {
+    display: none;
+  }
+
+  /* Стиль для canvas QR-коду - задаємо точний розмір */
+  #qr-code-container canvas {
+    width: 300px !important;
+    height: 300px !important;
+    image-rendering: pixelated;
+  }
+</style>
+
+<!-- Toast для копіювання -->
+<div id="copy-toast" style="
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: #0d6efd;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.3rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  z-index: 1050;
+">Код скопійовано!</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<script>
+  const institutionSelect = document.getElementById('institution-select');
+  const spamFilter = document.getElementById('spam-filter');
+  const sentimentFilter = document.getElementById('sentiment-filter');
+  const lengthFilter = document.getElementById('length-filter');
+  const orderFilter = document.getElementById('order-filter');
+  const codeTextSpan = document.getElementById('selected-code-text');
+  const copyIcon = document.getElementById('copy-icon');
+  const selectedCodeDiv = document.getElementById('selected-code');
+  const copyToast = document.getElementById('copy-toast');
+
+  function updateFeedbacks() {
+    const code = institutionSelect.value;
+    const qrContainer = document.getElementById('qr-code-container');
+
+    if (!code) {
+      document.getElementById('feedbacks-table').innerHTML = '';
+      codeTextSpan.textContent = '';
+      copyIcon.classList.add('hidden');
+      selectedCodeDiv.classList.add('hidden');
+      qrContainer.innerHTML = '';
+      return;
+    }
+
+    codeTextSpan.textContent = code;
+    copyIcon.classList.remove('hidden');
+    selectedCodeDiv.classList.remove('hidden');
+
+    const params = new URLSearchParams({
+      code,
+      spam: spamFilter.value,
+      sentiment: sentimentFilter.value,
+      length: lengthFilter.value,
+      order: orderFilter.value
+    });
+
+    htmx.ajax('GET', `/admin/feedbacks?${params.toString()}`, '#feedbacks-table');
+
+    qrContainer.innerHTML = '';
+
+    QRCode.toCanvas(code, { width: 100, height: 100 }, function (error, canvas) {
+      if (error) {
+        console.error(error);
+        qrContainer.innerHTML = '<p style="color:red;">Помилка генерації QR</p>';
+        return;
+      }
+      qrContainer.appendChild(canvas);
+    });
+  }
+
+  institutionSelect.addEventListener('change', updateFeedbacks);
+  spamFilter.addEventListener('change', updateFeedbacks);
+  sentimentFilter.addEventListener('change', updateFeedbacks);
+  lengthFilter.addEventListener('change', updateFeedbacks);
+  orderFilter.addEventListener('change', updateFeedbacks);
+
+  document.getElementById('refresh-feedbacks').addEventListener('click', () => {
+    updateFeedbacks();
+  });
+
+  setInterval(() => {
+    if (institutionSelect.value) {
+      updateFeedbacks();
+    }
+  }, 30000); // автооновлення кожні 30 секунд
+
+  function copyCode() {
+    const text = codeTextSpan.textContent.trim();
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      copyToast.style.opacity = '0.85';
+      copyToast.style.pointerEvents = 'auto';
+      setTimeout(() => {
+        copyToast.style.opacity = '0';
+        copyToast.style.pointerEvents = 'none';
+      }, 2000);
+    });
+  }
+
+  const modalEl = document.getElementById('modal');
+  modalEl.addEventListener('hidden.bs.modal', () => {
+    window.location.reload();
+  });
+
+  window.addEventListener('DOMContentLoaded', () => {
+    updateFeedbacks();
+  });
+</script>
+
+{% endblock %}

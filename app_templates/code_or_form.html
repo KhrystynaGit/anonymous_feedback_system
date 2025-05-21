@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if show_form %}
+    Залиште відгук
+  {% else %}
+    Введіть код інституції
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+
+    {% if show_form %}
+      <h2>Залиште відгук для: <strong>{{ official_name }}</strong></h2>
+      <form action="/submit" method="post" class="border p-4 bg-white rounded shadow-sm">
+        <input type="hidden" name="institution_code" value="{{ institution_code }}">
+        <div class="mb-3">
+          <label for="text">Відгук</label>
+          <textarea id="text" name="text" class="form-control" rows="6" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Надіслати</button>
+      </form>
+    {% else %}
+      <h2>Введіть код інституції або відскануйте QR-код</h2>
+      <form action="/enter_code" method="post" class="border p-4 bg-white rounded shadow-sm mb-4">
+        <div class="mb-3 d-flex align-items-center gap-2">
+          <input type="text" id="code-input" name="code" class="form-control" placeholder="Введіть код або скануйте" required autocomplete="off" />
+          <button type="button" class="btn btn-outline-secondary" id="start-qr-scan-btn" title="Сканувати QR код">📷</button>
+        </div>
+        {% if error %}
+          <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary w-100">Продовжити</button>
+      </form>
+
+      <div id="qr-reader" style="display:none; width: 100%; max-width: 400px; margin: auto; border: 1px solid #ddd; border-radius: 8px;"></div>
+      <div id="qr-result" class="text-center mt-3 text-muted"></div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+  let html5QrCode;
+  const qrReaderDiv = document.getElementById('qr-reader');
+  const qrResultDiv = document.getElementById('qr-result');
+  const codeInput = document.getElementById('code-input');
+  const startScanBtn = document.getElementById('start-qr-scan-btn');
+
+function onScanSuccess(decodedText, decodedResult) {
+  codeInput.value = decodedText;
+  qrResultDiv.innerText = `Скановано: ${decodedText}`;
+  stopScanning();
+
+  // Автоматично відправити форму
+  const form = codeInput.closest('form');
+  if (form) {
+    form.submit();
+  }
+}
+
+
+  function onScanFailure(error) {
+    // Помилки ігноруємо
+  }
+
+  function stopScanning() {
+    if (html5QrCode) {
+      html5QrCode.stop().then(() => {
+        html5QrCode.clear();
+        qrReaderDiv.style.display = 'none';
+        qrResultDiv.innerText = '';
+      }).catch(err => {
+        console.error('Не вдалося зупинити сканер', err);
+      });
+    }
+  }
+
+  startScanBtn.addEventListener('click', () => {
+    if (!html5QrCode) {
+      html5QrCode = new Html5Qrcode("qr-reader");
+    }
+
+    if (qrReaderDiv.style.display === 'block') {
+      stopScanning();
+      return;
+    }
+
+    qrReaderDiv.style.display = 'block';
+    qrResultDiv.innerText = 'Очікування сканування...';
+
+    // Спроба запустити задню камеру через facingMode
+    html5QrCode.start(
+      { facingMode: { exact: "environment" } },
+      { fps: 10, qrbox: 250 },
+      onScanSuccess,
+      onScanFailure
+    ).catch(() => {
+      // Якщо не вдалось, падаємо на першу камеру
+      Html5Qrcode.getCameras().then(cameras => {
+        if (cameras && cameras.length) {
+          html5QrCode.start(
+            cameras[0].id,
+            { fps: 10, qrbox: 250 },
+            onScanSuccess,
+            onScanFailure
+          ).catch(err => {
+            qrResultDiv.innerText = 'Помилка запуску камери: ' + err;
+            qrReaderDiv.style.display = 'none';
+            console.error(err);
+          });
+        } else {
+          qrResultDiv.innerText = 'Камера не знайдена';
+          qrReaderDiv.style.display = 'none';
+        }
+      }).catch(err => {
+        qrResultDiv.innerText = 'Помилка доступу до камери: ' + err;
+        qrReaderDiv.style.display = 'none';
+        console.error(err);
+      });
+    });
+  });
+</script>
+{% endblock %}
