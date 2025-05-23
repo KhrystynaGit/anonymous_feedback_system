@@ -1,34 +1,74 @@
-<table class="table table-striped table-hover">
-  <thead class="table-dark">
-    <tr>
-      <th scope="col">ID</th>
-      <th scope="col">Текст відгуку</th>
-      <th scope="col">Мова</th>
-      <th scope="col">Сентимент</th>
-      <th scope="col">Спам</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% if feedbacks %}
-      {% for fb in feedbacks %}
-        <tr>
-          <td>{{ fb[0] }}</td>
-          <td style="max-width: 500px; white-space: normal;">{{ fb[1] }}</td>
-          <td>{{ fb[2] }}</td>
-          <td>{{ fb[3] }}</td>
-          <td>
-            {% if fb[4] %}
-              <span class="badge bg-danger">Так</span>
-            {% else %}
-              <span class="badge bg-success">Ні</span>
-            {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-    {% else %}
+<div id="feedbacks-table" class="overflow-x-auto">
+  <table class="table-fixed w-full bg-white border border-gray-200 rounded shadow-sm" style="table-layout: fixed; word-break: break-word;">
+    <colgroup>
+      <col class="w-[5%]" />
+      <col class="w-[15%]" />
+      <col class="w-[40%]" />
+      <col class="w-[10%]" />
+      <col class="w-[10%]" />
+      <col class="w-[10%]" />
+      <col class="w-[10%]" />
+    </colgroup>
+    <thead class="bg-gray-100 text-sm font-semibold text-gray-700">
       <tr>
-        <td colspan="5" class="text-center fst-italic">Відгуків не знайдено</td>
+        <th class="px-3 py-2 text-left">ID</th>
+        <th class="px-3 py-2 text-left">Тема</th>
+        <th class="px-3 py-2 text-left">Зміст</th>
+        <th class="px-3 py-2 text-center">Мова</th>
+        <th class="px-3 py-2 text-center">Спам</th>
+        <th class="px-3 py-2 text-center">Сентимент</th>
+        <th class="px-3 py-2 text-center">Секрет</th>
       </tr>
-    {% endif %}
-  </tbody>
-</table>
+    </thead>
+    <tbody class="divide-y divide-gray-200 text-sm">
+      {% for fb in feedbacks %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-3 py-2 truncate">{{ fb[0] }}</td>
+        <td class="px-3 py-2 font-semibold truncate" title="{{ fb[1] }}">{{ fb[1] }}</td>
+        <td class="px-3 py-2">
+          <div id="content-{{ fb[0] }}" class="break-words" data-text="{{ fb[2] }}">
+            {% if fb[2]|length > 120 %}
+              {{ fb[2][:120] }}…
+            {% else %}
+              {{ fb[2] }}
+            {% endif %}
+          </div>
+          {% if fb[2]|length > 120 %}
+            <button data-id="{{ fb[0] }}" class="text-blue-500 text-xs mt-1 show-more-btn" type="button">
+              Показати більше
+            </button>
+          {% endif %}
+        </td>
+        <td class="px-3 py-2 text-center truncate">{{ fb[4] }}</td>
+        <td class="px-3 py-2 text-center">{% if fb[6] == 1 %}<span title="Спам">🚫</span>{% endif %}</td>
+        <td class="px-3 py-2 text-center">
+          {% set icons = {'very negative':'😡','negative':'😞','neutral':'😐','positive':'😊','very positive':'😄'} %}
+          <span title="{{ fb[5] }}">{{ icons.get(fb[5]|lower, '❔') }}</span>
+        </td>
+        <td class="px-3 py-2 text-center">
+          <div class="inline-flex items-center space-x-1 justify-center">
+            {% set icons_secret = {'very negative':'😡','negative':'😞','neutral':'😐','positive':'😊','very positive':'😄'} %}
+            <span title="{{ fb[8] }}">{{ icons_secret.get(fb[8]|lower, '❔') }}</span>
+            {% if fb[9] == 1 %}<span title="Спам">🚫</span>{% endif %}
+            <button title="Показати текст" class="text-blue-600 hover:text-blue-800 show-secret-btn" data-id="{{ fb[0] }}" data-code="{{ selected_institution or '' }}">🔒</button>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Делегування кліків для динамічних таблиць -->
+<script>
+  document.body.addEventListener('click', function(event) {
+    if (!event.target.classList.contains('show-more-btn')) return;
+    const btn = event.target;
+    const id = btn.getAttribute('data-id');
+    const contentEl = document.getElementById('content-' + id);
+    const fullText = contentEl.getAttribute('data-text');
+    const isExpanded = btn.textContent.trim() === 'Згорнути';
+    contentEl.textContent = isExpanded ? fullText.slice(0, 120) + '…' : fullText;
+    btn.textContent = isExpanded ? 'Показати більше' : 'Згорнути';
+  });
+</script>

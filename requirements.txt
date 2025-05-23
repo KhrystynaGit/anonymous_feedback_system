@@ -6,6 +6,7 @@ transformers==4.52.0
 torch==2.7.0
 langdetect==1.0.9
 sentencepiece==0.2.0
-numpy<2,==1.26.4
-protobuf
+numpy==1.26.4
+protobuf>=3.20,<5.0
 bcrypt==4.0.1
+sqlalchemy==2.0.30

@@ -3,13 +3,10 @@
 {% block title %}Помилка{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="alert alert-danger">
-      <h3>Помилка</h3>
-      <p>{{ error }}</p>
-      <a href="/" class="btn btn-secondary mt-3">← Назад</a>
-    </div>
-  </div>
+<div class="flex flex-col items-center justify-center text-center bg-white p-8 rounded-lg shadow max-w-lg mx-auto">
+  <h3 class="text-2xl font-semibold text-danger mb-4">❌ Сталася помилка</h3>
+  <p class="text-gray-700">{{ error }}</p>
+
+  <a href="/" class="mt-6 inline-block bg-gray-300 hover:bg-gray-400 text-black px-5 py-2 rounded shadow">← Назад</a>
 </div>
 {% endblock %}

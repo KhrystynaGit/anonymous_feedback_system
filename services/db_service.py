@@ -1,188 +1,242 @@
-import sqlite3
-import os
-import random
-import string
-import re
-import bcrypt  # Для безпечного хешування паролів
+import os, random, string
+from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, Float, func
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-DB_PATH = "feedback.db"
+# База даних
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///feedback.db")
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-def validate_institution_code(code: str) -> bool:
-    return bool(re.fullmatch(r"[a-z0-9]{8}", code))
+# Моделі
+class Institution(Base):
+    __tablename__ = "institutions"
+    id = Column(Integer, primary_key=True)
+    official_name = Column(String, nullable=False)
+    code = Column(String, unique=True, index=True, nullable=False)
 
-def hash_password(password: str) -> bytes:
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode(), salt)
+class Feedback(Base):
+    __tablename__ = "feedbacks"
+    id = Column(Integer, primary_key=True)
+    institution_code = Column(String, index=True)
+    subject = Column(String)
+    text = Column(Text, nullable=False)
+    secret_text = Column(Text)
+    lang = Column(String)
+    sentiment = Column(String)
+    spam = Column(Boolean)
+    tags = Column(String)
+    secret_sentiment = Column(String)
+    secret_spam = Column(Boolean)
+    secret_spam_score = Column(Float)
 
-def verify_password(password: str, password_hash: bytes) -> bool:
-    return bcrypt.checkpw(password.encode(), password_hash)
+class Admin(Base):
+    __tablename__ = "admin"
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True, nullable=False)
+    password_hash = Column(String, nullable=False)
 
-def create_institutions_table():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS institutions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            official_name TEXT,
-            code TEXT UNIQUE
-        )
-    ''')
-    conn.commit()
-    conn.close()
+class AdminSecrets(Base):
+    __tablename__ = "admin_secrets"
+    id = Column(Integer, primary_key=True)
+    secret_view_password = Column(String, nullable=False)
+
+Base.metadata.create_all(bind=engine)
+
+# Функції доступу до БД
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def generate_random_code(length=8):
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
+def validate_institution_code(code: str) -> bool:
+    return bool(code) and len(code) == 8 and all(c in string.ascii_lowercase + string.digits for c in code)
+
 def add_institution(official_name):
-    create_institutions_table()
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-
-    while True:
-        code = generate_random_code()
-        c.execute("SELECT 1 FROM institutions WHERE code=?", (code,))
-        if not c.fetchone():
-            break
-
-    c.execute("INSERT INTO institutions (official_name, code) VALUES (?, ?)", (official_name, code))
-    conn.commit()
-    conn.close()
-
-    create_feedback_table_for_institution(code)
-    return code
+    db = SessionLocal()
+    try:
+        while True:
+            code = generate_random_code()
+            exists = db.query(Institution).filter_by(code=code).first()
+            if not exists:
+                break
+        new_inst = Institution(official_name=official_name, code=code)
+        db.add(new_inst)
+        db.commit()
+        return code
+    finally:
+        db.close()
 
 def get_all_institutions():
-    create_institutions_table()
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT id, official_name, code FROM institutions ORDER BY id")
-    institutions = c.fetchall()
-    conn.close()
-    return institutions
+    db = SessionLocal()
+    try:
+        return db.query(Institution).order_by(Institution.id).all()
+    finally:
+        db.close()
 
 def get_institution_by_code(code):
-    create_institutions_table()
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT official_name, code FROM institutions WHERE code=?", (code,))
-    row = c.fetchone()
-    conn.close()
-    return row
+    db = SessionLocal()
+    try:
+        inst = db.query(Institution).filter_by(code=code).first()
+        return (inst.official_name, inst.code) if inst else None
+    finally:
+        db.close()
 
-def create_feedback_table_for_institution(institution_code):
-    if not validate_institution_code(institution_code):
-        raise ValueError("Некоректний код інституції")
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    table_name = f"feedback_{institution_code}"
-    c.execute(f'''
-        CREATE TABLE IF NOT EXISTS {table_name} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            text TEXT,
-            lang TEXT,
-            sentiment TEXT,
-            spam INTEGER
+def save_feedback_for_institution(
+    institution_code,
+    text,
+    lang,
+    sentiment,
+    spam,
+    tags=None,
+    subject=None,
+    secret_text=None,
+    secret_sentiment=None,
+    secret_spam=None,
+    secret_spam_score=None
+):
+    db = SessionLocal()
+    try:
+        feedback = Feedback(
+            institution_code=institution_code,
+            subject=subject,
+            text=text,
+            secret_text=secret_text,
+            lang=lang,
+            sentiment=sentiment,
+            spam=spam,
+            tags=tags,
+            secret_sentiment=secret_sentiment,
+            secret_spam=secret_spam,
+            secret_spam_score=secret_spam_score
         )
-    ''')
-    conn.commit()
-    conn.close()
-
-def save_feedback_for_institution(institution_code, text, lang, sentiment, spam):
-    if not validate_institution_code(institution_code):
-        raise ValueError("Некоректний код інституції")
-    create_feedback_table_for_institution(institution_code)
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    table_name = f"feedback_{institution_code}"
-    c.execute(f'''
-        INSERT INTO {table_name} (text, lang, sentiment, spam) VALUES (?, ?, ?, ?)
-    ''', (text, lang, sentiment, spam))
-    conn.commit()
-    conn.close()
+        db.add(feedback)
+        db.commit()
+    finally:
+        db.close()
 
 def load_all_feedback_for_institution(
     institution_code,
     spam_filter='all',
     sentiment_filter='all',
     length_filter='all',
-    order='desc'
+    order='desc',
+    tags_filter='all'
 ):
-    if not validate_institution_code(institution_code):
-        raise ValueError("Некоректний код інституції")
-    create_feedback_table_for_institution(institution_code)
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    table_name = f"feedback_{institution_code}"
+    db = SessionLocal()
+    try:
+        query = db.query(Feedback).filter(Feedback.institution_code == institution_code)
 
-    query = f"SELECT id, text, lang, sentiment, spam FROM {table_name} WHERE 1=1"
-    params = []
+        # Фільтр спаму
+        if spam_filter == 'spam':
+            query = query.filter(Feedback.spam == True)
+        elif spam_filter == 'ham':
+            query = query.filter(Feedback.spam == False)
 
-    if spam_filter == 'spam':
-        query += " AND spam=1"
-    elif spam_filter == 'ham':
-        query += " AND spam=0"
+        # Фільтр сентименту (нечутливий до регістру)
+        if sentiment_filter.lower() != 'all':
+            query = query.filter(func.lower(Feedback.sentiment) == sentiment_filter.lower())
 
-    if sentiment_filter in ('positive', 'negative', 'neutral'):
-        query += " AND sentiment=?"
-        params.append(sentiment_filter)
+        # Фільтр довжини
+        if length_filter == 'short':
+            query = query.filter(Feedback.text.op('length')() <= 100)
+        elif length_filter == 'long':
+            query = query.filter(Feedback.text.op('length')() > 100)
 
-    if length_filter == 'short':
-        query += " AND LENGTH(text) <= 100"
-    elif length_filter == 'long':
-        query += " AND LENGTH(text) > 100"
+        # Фільтр тегів
+        if tags_filter != 'all':
+            query = query.filter(Feedback.tags.like(f"%{tags_filter}%"))
 
-    query += f" ORDER BY id {'ASC' if order == 'asc' else 'DESC'}"
+        # Сортування
+        if order == 'asc':
+            query = query.order_by(Feedback.id.asc())
+        else:
+            query = query.order_by(Feedback.id.desc())
 
-    c.execute(query, params)
-    rows = c.fetchall()
-    conn.close()
-    return rows
+        results = query.all()
+        return [
+            (f.id, f.subject, f.text, f.secret_text, f.lang, f.sentiment, f.spam, f.tags, f.secret_sentiment, f.secret_spam, f.secret_spam_score)
+            for f in results
+        ]
+    finally:
+        db.close()
+
+def get_feedback_secret_text_by_id_and_code(feedback_id: int, institution_code: str):
+    db = SessionLocal()
+    try:
+        f = db.query(Feedback).filter_by(id=feedback_id, institution_code=institution_code).first()
+        return f.secret_text if f else None
+    finally:
+        db.close()
+
+def get_feedback_secret_meta_by_id_and_code(feedback_id: int, institution_code: str):
+    db = SessionLocal()
+    try:
+        f = db.query(Feedback).filter_by(id=feedback_id, institution_code=institution_code).first()
+        if f:
+            return f.secret_sentiment, f.secret_spam, f.secret_spam_score
+        return None, None, None
+    finally:
+        db.close()
 
 def create_admin_table_if_not_exists():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS admin (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE,
-            password_hash BLOB
-        )
-    ''')
-    conn.commit()
-    conn.close()
+    Base.metadata.create_all(bind=engine)
 
 def add_admin_user(username, password):
-    create_admin_table_if_not_exists()
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT 1 FROM admin WHERE username=?", (username,))
-    if c.fetchone():
-        conn.close()
-        return
-    password_hash = hash_password(password)
-    c.execute("INSERT INTO admin (username, password_hash) VALUES (?, ?)", (username, password_hash))
-    conn.commit()
-    conn.close()
+    from services.auth_service import hash_password
+    db = SessionLocal()
+    try:
+        if not db.query(Admin).filter_by(username=username).first():
+            hashed = hash_password(password)
+            db.add(Admin(username=username, password_hash=hashed.decode()))
+            db.commit()
+    finally:
+        db.close()
 
 def verify_admin_user(username, password):
-    create_admin_table_if_not_exists()
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT password_hash FROM admin WHERE username=?", (username,))
-    row = c.fetchone()
-    conn.close()
-    if row:
-        password_hash = row[0]
-        return verify_password(password, password_hash)
-    return False
+    from services.auth_service import verify_password
+    db = SessionLocal()
+    try:
+        admin = db.query(Admin).filter_by(username=username).first()
+        return verify_password(password, admin.password_hash) if admin else False
+    finally:
+        db.close()
 
-def update_admin_password(username, new_password):
-    password_hash = hash_password(new_password)
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("UPDATE admin SET password_hash = ? WHERE username = ?", (password_hash, username))
-    conn.commit()
-    conn.close()
+def update_admin_password(username, new_password_hash):
+    db = SessionLocal()
+    try:
+        admin = db.query(Admin).filter_by(username=username).first()
+        if admin:
+            admin.password_hash = new_password_hash
+            db.commit()
+    finally:
+        db.close()
+
+def set_secret_view_password(password: str):
+    db = SessionLocal()
+    try:
+        db.query(AdminSecrets).delete()
+        db.add(AdminSecrets(id=1, secret_view_password=password))
+        db.commit()
+    finally:
+        db.close()
+
+def get_secret_view_password() -> str:
+    db = SessionLocal()
+    try:
+        s = db.query(AdminSecrets).filter_by(id=1).first()
+        return s.secret_view_password if s else ""
+    finally:
+        db.close()
 
 def generate_random_password(length=24):
     chars = string.ascii_letters + string.digits

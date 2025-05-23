@@ -3,15 +3,15 @@
 {% block title %}Дякуємо за відгук{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6 text-center">
-    <div class="alert alert-success py-4">
-      <h3>Дякуємо за ваш відгук!</h3>
-      <p><strong>Мова:</strong> {{ lang }}</p>
-      <p><strong>Сентимент:</strong> {{ sentiment }}</p>
-      <p><strong>Спам:</strong> {{ 'Так' if spam else 'Ні' }} ({{ score }})</p>
-      <a href="/" class="btn btn-primary mt-3">← Назад</a>
-    </div>
+<div class="flex flex-col items-center justify-center text-center bg-white p-8 rounded-lg shadow max-w-lg mx-auto">
+  <h3 class="text-2xl font-semibold text-success mb-4">✅ Дякуємо за ваш відгук!</h3>
+
+  <div class="space-y-2 text-sm text-gray-700">
+    <p><strong>Мова:</strong> {{ lang }}</p>
+    <p><strong>Сентимент:</strong> {{ sentiment }}</p>
+    <p><strong>Спам:</strong> {{ 'Так' if spam else 'Ні' }} ({{ score }})</p>
   </div>
+
+  <a href="/" class="mt-6 inline-block bg-primary hover:bg-blue-700 text-white px-5 py-2 rounded shadow">← Назад</a>
 </div>
 {% endblock %}

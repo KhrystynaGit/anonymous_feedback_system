@@ -1,31 +1,39 @@
-# Anonymous Feedback System
+# Анонімна Система Відгуків
 
-Simple web app for anonymous collection of feedback with spam detection and sentiment analysis.
-
----
-
-## Features
-
-- Submit anonymous feedback by institution code  
-- Spam detection with a fine-tuned transformer model  
-- Sentiment analysis (multilingual)  
-- Admin panel to manage institutions and view feedback  
-- QR code scanning support for easy institution code input  
+Веб-застосунок для збору анонімних відгуків з підтримкою детекції спаму, аналізу сентименту, секретного змісту та адмін-панелі.
 
 ---
 
-## Requirements
+## 🔍 Основні можливості
 
-- Python 3.10+  
-- [pip](https://pip.pypa.io/en/stable/)  
+- Надсилання анонімного відгуку за кодом інституції
+- Інтерактивна форма з тегами, темою та секретним полем
+- Автоматичне визначення мови та аналіз сентименту (multilingual)
+- Визначення спаму через донавчений трансформер
+- Секретний зміст (видимий тільки адмінам із секретним паролем)
+- Адмінпанель з фільтрами за тегами, спамом, сентиментом
+- Можливість додавати інституції
+- Сканер QR-кодів для введення коду
+- Зміна паролю адміністратора
+- Вивантаження секретного змісту по паролю
 
 ---
 
-## Setup & Run
-(for windows just run start.bat)
+## ⚙️ Вимоги
 
-1. Clone the repo  
-2. Create and activate a virtual environment (recommended):
+- Python 3.10+
+- [pip](https://pip.pypa.io/en/stable/)
+- [Node.js](https://nodejs.org/) (опційно для білду фронтенду)
+- Модель спаму в каталозі `spam_model_dofinetuned2`
+
+---
+
+## 🚀 Запуск
+
+### 🔧 Перший запуск:
+
+1. Клонуй репозиторій
+2. Створи віртуальне середовище:
 
    ```bash
    python -m venv .venv
@@ -33,29 +41,59 @@ Simple web app for anonymous collection of feedback with spam detection and sent
    .venv\Scripts\activate.bat # Windows
    ```
 
-3. Install dependencies:
+3. Встанови залежності:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-4. Run the app:
+4. Запусти застосунок:
 
    ```bash
    uvicorn app_main:app --reload
    ```
 
-5. Open http://127.0.0.1:8000 in your browser (use https://localhost:8000 with start.bat)
-
-6. Admin panel available at http://127.0.0.1:8000/admin  
-   - Default admin username: `admin`  
-   - Password is auto-generated on first run and saved in `deleteme.txt` file  
+5. Перейди у браузері за адресою http://127.0.0.1:8000
 
 ---
 
-## Notes
+## 🔐 Доступ до адмінпанелі
 
-- Database: SQLite (`feedback.db` in project root)  
-- Passwords hashed with bcrypt  
-- Spam model is loaded from local folder `spam_model_dofinetuned2`  (there is no model, so you need to use yours, i used xlm-roberta as base)
-- Change admin password immediately after first login  
+- Адмін-панель: http://127.0.0.1:8000/admin
+- Створюється при першому запуску
+- Дані доступу зберігаються у файлі `deleteme.txt` (включаючи пароль для перегляду секретного тексту)
+- Після входу рекомендується змінити пароль
+
+---
+
+## 📦 База даних
+
+- За замовчуванням — SQLite (`feedback.db`)
+- Можна підключити PostgreSQL через змінну `DATABASE_URL`
+- ORM: SQLAlchemy
+
+---
+
+## 🧠 Моделі
+
+- **Сентимент**: `tabularisai/multilingual-sentiment-analysis`
+- **Спам**: кастомна донавчена модель (розмістити в `spam_model_dofinetuned2/`)
+
+---
+
+## 📁 Структура проекту
+
+```
+├── app_main.py               # Точка входу FastAPI
+├── controllers/              # Контроллери: admin + feedback
+├── services/                 # Сервіси spam, sentiment, БД, auth
+├── app_templates/            # HTML-шаблони (Jinja2)
+├── static/                   # CSS
+├── requirements.txt          # Python-залежності
+├── spam_model_dofinetuned2/  # Локальна модель для спаму
+└── feedback.db               # SQLite база
+```
+
+## ❗️Поради з безпеки
+
+- Видаліть `deleteme.txt` після першого запуску
