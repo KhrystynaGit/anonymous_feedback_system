@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Залиште відгук{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
+  <h2 class="text-xl font-semibold mb-4">Залиште відгук для: <strong>{{ official_name }}</strong></h2>
+
+  <form action="/submit" method="post" class="space-y-4" id="feedback-form">
+    <input type="hidden" name="institution_code" value="{{ institution_code }}">
+
+    <!-- Тема -->
+    <div>
+      <label for="subject" class="block font-medium mb-1">Тема відгуку</label>
+      <input type="text" id="subject" name="subject" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required>
+    </div>
+
+    <!-- Теги -->
+    <div>
+      <label class="block font-medium mb-1">Теги (натисніть для вибору):</label>
+      <div id="tags-container" class="flex flex-wrap gap-2 mt-1">
+        {% for tag in ["неввічлива поведінка", "агресивна поведінка", "корупція", "порушення професійної етики"] %}
+          <button type="button" class="tag-btn border border-primary rounded-full px-3 py-1 text-primary cursor-pointer hover:bg-primary hover:text-white transition" data-value="{{ tag }}">{{ tag }}</button>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="tags" id="tags-input">
+    </div>
+
+    <!-- Зміст відгуку -->
+    <div>
+      <label for="text" class="block font-medium mb-1">Зміст відгуку</label>
+      <textarea id="text" name="text" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" rows="6" required></textarea>
+    </div>
+
+    <!-- Секретний зміст -->
+    <div>
+      <label for="secret_text" class="block font-medium mb-1">Секретний зміст (не буде видно публічно)</label>
+      <textarea id="secret_text" name="secret_text" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="(необов'язково)"></textarea>
+    </div>
+
+    {% if error %}
+      <div class="text-red-600">{{ error }}</div>
+    {% endif %}
+
+    <button type="submit" class="w-full bg-success hover:bg-green-700 text-white py-2 rounded">Надіслати</button>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tagButtons = document.querySelectorAll('.tag-btn');
+    const tagsInput = document.getElementById('tags-input');
+    let selectedTags = [];
+
+    tagButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const value = btn.getAttribute('data-value');
+        if (selectedTags.includes(value)) {
+          selectedTags = selectedTags.filter(t => t !== value);
+          btn.classList.remove('bg-primary', 'text-white');
+          btn.classList.add('text-primary');
+        } else {
+          selectedTags.push(value);
+          btn.classList.add('bg-primary', 'text-white');
+          btn.classList.remove('text-primary');
+        }
+        tagsInput.value = selectedTags.join(',');
+      });
+    });
+
+    document.getElementById('feedback-form').addEventListener('submit', () => {
+      tagsInput.value = selectedTags.join(',');
+    });
+  });
+</script>
+{% endblock %}

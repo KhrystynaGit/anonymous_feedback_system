@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Введіть код інституції{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-white p-6 rounded-lg shadow-md">
+  <h2 class="text-xl font-semibold mb-4 text-center">Введіть код інституції або відскануйте QR-код</h2>
+
+  <form action="/enter_code" method="post" class="space-y-4">
+    <div class="flex items-center gap-2">
+      <input type="text" id="code-input" name="code"
+             class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+             placeholder="Введіть код або скануйте" required autocomplete="off" />
+      <button type="button" id="start-qr-scan-btn" title="Сканувати QR"
+              class="px-3 py-2 border rounded bg-gray-100 hover:bg-gray-200 text-lg">📷</button>
+    </div>
+
+    {% if error %}
+    <div class="text-red-600 text-sm">{{ error }}</div>
+    {% endif %}
+
+    <button type="submit"
+            class="w-full bg-primary hover:bg-blue-700 text-white py-2 rounded shadow">Продовжити</button>
+  </form>
+
+  <div id="qr-reader" class="mt-4 hidden border rounded" style="overflow: hidden;"></div>
+  <div id="qr-result" class="text-center text-sm text-gray-500 mt-2"></div>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+  let html5QrCode;
+  const qrReaderDiv = document.getElementById('qr-reader');
+  const qrResultDiv = document.getElementById('qr-result');
+  const codeInput = document.getElementById('code-input');
+  const startScanBtn = document.getElementById('start-qr-scan-btn');
+
+  function onScanSuccess(decodedText) {
+    codeInput.value = decodedText;
+    qrResultDiv.innerText = `Скановано: ${decodedText}`;
+    stopScanning();
+    codeInput.closest('form').submit();
+  }
+
+  function stopScanning() {
+    if (html5QrCode) {
+      html5QrCode.stop().then(() => {
+        html5QrCode.clear();
+        qrReaderDiv.classList.add('hidden');
+        qrResultDiv.innerText = '';
+      });
+    }
+  }
+
+  startScanBtn.addEventListener('click', () => {
+    if (!html5QrCode) {
+      html5QrCode = new Html5Qrcode("qr-reader");
+    }
+
+    if (!qrReaderDiv.classList.contains('hidden')) {
+      stopScanning();
+      return;
+    }
+
+    qrReaderDiv.classList.remove('hidden');
+    qrResultDiv.innerText = 'Очікування сканування...';
+
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      onScanSuccess,
+      () => {}
+    ).catch(() => {
+      qrResultDiv.innerText = 'Не вдалося отримати доступ до камери.';
+      qrReaderDiv.classList.add('hidden');
+    });
+  });
+</script>
+{% endblock %}
