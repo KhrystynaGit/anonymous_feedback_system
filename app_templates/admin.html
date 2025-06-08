@@ -28,7 +28,12 @@
 </div>
 
 <div class="flex flex-wrap gap-4 mb-4 items-center">
-  <select id="institution-select" class="border px-3 py-2 rounded">
+  <select id="institution-select" class="border px-3 py-2 rounded"
+          hx-get="/admin/institutions_options"
+          hx-trigger="institutionAdded from:body"
+          hx-target="#institution-select"
+          hx-vals="js:{current: this.value}"
+          hx-swap="innerHTML">
     <option value="" selected disabled>Оберіть інституцію</option>
     {% for inst in institutions %}
       <option value="{{ inst.code }}">{{ inst.official_name }}</option>
@@ -155,12 +160,6 @@
   });
   addInstModal.addEventListener('click', (e) => { if (e.target === addInstModal) addInstModal.classList.add('hidden'); });
 
-  document.body.addEventListener('institutionAdded', () => {
-    const current = institutionSelect.value;
-    fetch('/admin/institutions_options')
-      .then(r => r.text())
-      .then(html => { institutionSelect.innerHTML = html; institutionSelect.value = current; });
-  });
 
   (function(){
     const secretModal = document.getElementById('secretModal');
