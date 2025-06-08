@@ -48,6 +48,8 @@
     </svg>
   </div>
 
+  <button id="openStats" class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700">Статистика</button>
+
   <div id="qr-code-container"></div>
 </div>
 
@@ -107,7 +109,17 @@
   </div>
 </div>
 
+<div id="statsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg p-6 w-full max-w-md">
+    <h2 class="text-lg font-semibold mb-2">Статистика</h2>
+    <div id="stats-content" class="space-y-1 text-sm"></div>
+    <canvas id="stats-chart" class="mt-4 w-full h-48"></canvas>
+    <button onclick="closeStatsModal()" class="mt-4 w-full bg-gray-200 text-gray-800 py-2 rounded hover:bg-gray-300">Закрити</button>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   const institutionSelect = document.getElementById('institution-select');
   const spamFilter = document.getElementById('spam-filter');
@@ -159,6 +171,48 @@
     if (e.detail.target.id === 'modal-body') addInstModal.classList.remove('hidden');
   });
   addInstModal.addEventListener('click', (e) => { if (e.target === addInstModal) addInstModal.classList.add('hidden'); });
+
+  const statsBtn = document.getElementById('openStats');
+  const statsModal = document.getElementById('statsModal');
+  const statsContent = document.getElementById('stats-content');
+  let statsChart;
+  statsBtn.addEventListener('click', () => {
+    const code = institutionSelect.value;
+    if(!code){alert('Оберіть інституцію.');return;}
+    fetch(`/admin/stats?code=${code}`)
+      .then(r=>r.json()).then(data=>{
+        const total = data.total||0;
+        if(total===0){
+          statsContent.innerHTML = '<p>Немає даних</p>';
+          if(statsChart) statsChart.destroy();
+        } else {
+          const pos = data.positive||0;
+          const neg = data.negative||0;
+          const spam = data.spam||0;
+          const posPct = (pos/total*100).toFixed(1);
+          const negPct = (neg/total*100).toFixed(1);
+          const spamPct = (spam/total*100).toFixed(1);
+          statsContent.innerHTML = `
+            <p>Всього: ${total}</p>
+            <p>Позитивних: ${pos} (${posPct}%)</p>
+            <p>Негативних: ${neg} (${negPct}%)</p>
+            <p>Спам: ${spam} (${spamPct}%)</p>`;
+          const ctx = document.getElementById('stats-chart').getContext('2d');
+          if(statsChart) statsChart.destroy();
+          statsChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+              labels: ['Позитивні','Негативні','Спам','Інші'],
+              datasets:[{data:[pos,neg,spam,total-pos-neg-spam], backgroundColor:['#16a34a','#dc2626','#a855f7','#d1d5db']}]
+            },
+            options:{legend:{display:false}}
+          });
+        }
+        statsModal.classList.remove('hidden');
+      });
+  });
+  function closeStatsModal(){ statsModal.classList.add('hidden'); }
+  statsModal.addEventListener('click', (e)=>{ if(e.target===statsModal) closeStatsModal(); });
 
   (function(){
     const secretModal = document.getElementById('secretModal');
