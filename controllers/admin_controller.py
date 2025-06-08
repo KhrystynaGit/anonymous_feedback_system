@@ -12,6 +12,7 @@ from services.db_service import (
     get_secret_view_password,
     validate_institution_code,
     get_attachments_for_feedback,
+    get_feedback_stats,
 )
 
 router = APIRouter()
@@ -158,6 +159,14 @@ async def get_secret_text(
         "secret_sentiment": sentiment,
         "secret_spam": spam
     })
+
+
+@router.get("/admin/stats")
+async def institution_stats(code: str, user: str = Depends(verify_credentials)):
+    if not validate_institution_code(code):
+        return JSONResponse({"error": "Invalid code"}, status_code=400)
+    stats = get_feedback_stats(code)
+    return JSONResponse(stats)
 
 
 @router.get("/admin/attachments/{feedback_id}", response_class=HTMLResponse)

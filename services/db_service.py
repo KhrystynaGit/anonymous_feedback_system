@@ -283,3 +283,25 @@ def get_secret_view_password() -> str:
 def generate_random_password(length=24):
     chars = string.ascii_letters + string.digits
     return ''.join(random.choice(chars) for _ in range(length))
+
+def get_feedback_stats(code: str) -> dict:
+    db = SessionLocal()
+    try:
+        total = db.query(func.count(Feedback.id)).filter_by(institution_code=code).scalar() or 0
+        positive = db.query(func.count(Feedback.id)).filter(
+            Feedback.institution_code == code,
+            func.lower(Feedback.sentiment).in_(["positive", "very positive"])
+        ).scalar() or 0
+        negative = db.query(func.count(Feedback.id)).filter(
+            Feedback.institution_code == code,
+            func.lower(Feedback.sentiment).in_(["negative", "very negative"])
+        ).scalar() or 0
+        spam = db.query(func.count(Feedback.id)).filter_by(institution_code=code, spam=True).scalar() or 0
+        return {
+            "total": total,
+            "positive": positive,
+            "negative": negative,
+            "spam": spam,
+        }
+    finally:
+        db.close()
