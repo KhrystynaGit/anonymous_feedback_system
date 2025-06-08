@@ -57,7 +57,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const tagButtons = document.querySelectorAll('.tag-btn');
     const tagsInput = document.getElementById('tags-input');
-    let selectedTags = [];
+  let selectedTags = [];
 
     tagButtons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -77,9 +77,17 @@
 
     const subjectInput = document.getElementById('subject');
     const subjectCount = document.getElementById('subject-count');
-    subjectInput.addEventListener('input', () => {
-      subjectCount.textContent = subjectInput.value.length;
-    });
+  subjectInput.addEventListener('input', () => {
+    subjectCount.textContent = subjectInput.value.length;
+  });
+
+  const fileInput = document.getElementById('files');
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 5) {
+      alert('Максимум 5 файлів');
+      fileInput.value = '';
+    }
+  });
 
     document.getElementById('feedback-form').addEventListener('submit', () => {
       tagsInput.value = selectedTags.join(',');

@@ -54,6 +54,13 @@ async def submit_feedback(
     secret_text = (secret_text or "").strip()
     tags = tags.strip()
 
+    if len(files) > 5:
+        return templates.TemplateResponse("feedback_form.html", {
+            "request": request,
+            "institution_code": institution_code,
+            "error": "Можна додати максимум 5 файлів."
+        })
+
     attachments = []
     for upload in files:
         if upload.filename:
