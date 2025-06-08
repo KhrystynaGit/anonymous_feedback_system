@@ -6,7 +6,7 @@
 <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
   <h2 class="text-xl font-semibold mb-4">Залиште відгук для: <strong>{{ official_name }}</strong></h2>
 
-  <form action="/submit" method="post" class="space-y-4" id="feedback-form">
+  <form action="/submit" method="post" enctype="multipart/form-data" class="space-y-4" id="feedback-form">
     <input type="hidden" name="institution_code" value="{{ institution_code }}">
 
     <!-- Тема -->
@@ -37,6 +37,12 @@
     <div>
       <label for="secret_text" class="block font-medium mb-1">Секретний зміст (не буде видно публічно)</label>
       <textarea id="secret_text" name="secret_text" maxlength="5000" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="(необов'язково)"></textarea>
+    </div>
+
+    <!-- Файли -->
+    <div>
+      <label for="files" class="block font-medium mb-1">Додайте файли (необов'язково)</label>
+      <input type="file" id="files" name="files" multiple class="w-full" />
     </div>
 
     {% if error %}

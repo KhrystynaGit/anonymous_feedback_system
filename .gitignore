@@ -1,0 +1,15 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+
+# Databases
+*.db
+
+# Model files
+spam_model_dofinetuned2/
+
+# Uploaded files
+uploads/

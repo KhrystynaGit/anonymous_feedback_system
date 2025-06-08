@@ -11,6 +11,7 @@ from services.db_service import add_admin_user, verify_admin_user, set_secret_vi
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 templates = Jinja2Templates(directory="app_templates")
 
 app.include_router(feedback_router)

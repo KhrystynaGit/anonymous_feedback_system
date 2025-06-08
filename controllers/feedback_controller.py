@@ -1,17 +1,21 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, File, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from typing import Optional
+from typing import Optional, List
+import os
+from uuid import uuid4
 
 from services.nlp_service import detect_language, analyze_sentiment
 from services.spam_service import detect_spam
 from services.db_service import (
     save_feedback_for_institution,
+    save_attachments,
     get_institution_by_code,
 )
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app_templates")
+UPLOAD_DIR = "uploads"
 
 @router.get("/", response_class=HTMLResponse)
 async def code_or_form(request: Request):
@@ -41,13 +45,25 @@ async def submit_feedback(
     subject: str = Form(...),
     text: str = Form(...),
     secret_text: Optional[str] = Form(None),
-    tags: Optional[str] = Form("")
+    tags: Optional[str] = Form(""),
+    files: List[UploadFile] = File([])
 ):
     institution_code = institution_code.strip()
     subject = subject.strip()
     text = text.strip()
     secret_text = (secret_text or "").strip()
     tags = tags.strip()
+
+    attachments = []
+    for upload in files:
+        if upload.filename:
+            os.makedirs(UPLOAD_DIR, exist_ok=True)
+            unique_name = f"{uuid4().hex}_{upload.filename}"
+            file_path = os.path.join(UPLOAD_DIR, unique_name)
+            with open(file_path, "wb") as f:
+                content = await upload.read()
+                f.write(content)
+            attachments.append((upload.filename, file_path))
 
     if len(subject) < 3:
         return templates.TemplateResponse("feedback_form.html", {
@@ -93,7 +109,7 @@ async def submit_feedback(
     sentiment_secret = analyze_sentiment(secret_text) if secret_text else None
     spam_secret, score_secret = detect_spam(secret_text) if secret_text else (0, 0.0)
 
-    save_feedback_for_institution(
+    feedback_id = save_feedback_for_institution(
         institution_code,
         text,
         lang,
@@ -106,6 +122,9 @@ async def submit_feedback(
         secret_spam=spam_secret,
         secret_spam_score=score_secret
     )
+
+    if attachments:
+        save_attachments(feedback_id, attachments)
 
     return templates.TemplateResponse("success.html", {
         "request": request,
