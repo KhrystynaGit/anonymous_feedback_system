@@ -37,6 +37,12 @@ body.dark .bg-gray-200 { background-color: #374151 !important; }
 body.dark .text-gray-800 { color: #f9fafb !important; }
 body.dark .text-gray-700 { color: #e5e7eb !important; }
 
+/* Ensure user input text is visible on light backgrounds */
+input,
+textarea {
+  color: #000;
+}
+
 textarea {
   resize: vertical;
   min-height: 120px;
