@@ -3,13 +3,13 @@
 {% block title %}Введіть код інституції{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-lg shadow-md">
+<div class="max-w-xl mx-auto bg-white p-6 rounded-lg shadow-md">
   <h2 class="text-xl font-semibold mb-4 text-center">Введіть код інституції або відскануйте QR-код</h2>
 
   <form action="/enter_code" method="post" class="space-y-4">
     <div class="flex items-center gap-2">
       <input type="text" id="code-input" name="code"
-             class="form-input"
+             class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
              placeholder="Введіть код або скануйте" required autocomplete="off" />
       <button type="button" id="start-qr-scan-btn" title="Сканувати QR"
               class="px-3 py-2 border rounded bg-gray-100 hover:bg-gray-200 text-lg">📷</button>

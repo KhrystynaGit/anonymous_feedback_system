@@ -7,73 +7,33 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           colors: {
             primary: '#0d6efd',
-            'primary-dark': '#0a58ca',
             danger: '#dc3545',
             success: '#198754',
-            graylight: '#f8f9fa',
-            graydark: '#343a40'
+            graylight: '#f8f9fa'
           }
         }
       }
     }
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="bg-gray-100 dark:bg-gray-800 min-h-screen text-gray-800 dark:text-gray-200 transition-colors duration-300">
+<body class="bg-gray-100 min-h-screen text-gray-800">
 
   <!-- Шапка -->
-  <header class="bg-gray-200 dark:bg-graydark shadow px-6 py-4 transition-colors duration-300">
+  <header class="bg-gray-200 shadow px-6 py-4">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <a href="/" class="text-3xl font-semibold text-primary select-none hover:no-underline">🛡️ Анонімна система відгуків</a>
-      <button id="theme-toggle" class="text-xl px-3 py-1 rounded hover:bg-graylight dark:hover:bg-gray-700">🌓</button>
     </div>
   </header>
 
   <!-- Контент -->
-  <main class="max-w-5xl mx-auto px-4 py-6 mt-6 bg-gray-50 dark:bg-gray-700 rounded-lg shadow transition-colors duration-300">
+  <main class="max-w-5xl mx-auto px-4 py-6 mt-6 bg-gray-50 rounded-lg shadow">
     {% block content %}{% endblock %}
   </main>
-
-  <div id="toast" class="hidden fixed top-4 right-4 px-4 py-2 rounded shadow text-white"></div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const htmlEl = document.documentElement;
-      if (localStorage.getItem('theme') === 'dark') {
-        htmlEl.classList.add('dark');
-      }
-      const toggle = document.getElementById('theme-toggle');
-      if (toggle) {
-        toggle.addEventListener('click', () => {
-          htmlEl.classList.toggle('dark');
-          localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
-        });
-      }
-
-      const message = localStorage.getItem('toastMessage');
-      if (message) {
-        const type = localStorage.getItem('toastType');
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.classList.remove('hidden');
-        toast.classList.add(type === 'error' ? 'bg-danger' : 'bg-success');
-        setTimeout(() => {
-          toast.classList.add('hidden');
-          toast.classList.remove('bg-danger', 'bg-success');
-        }, 4000);
-        localStorage.removeItem('toastMessage');
-        localStorage.removeItem('toastType');
-      }
-    });
-  </script>
 
 </body>
 </html>
