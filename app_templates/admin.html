@@ -155,6 +155,13 @@
   });
   addInstModal.addEventListener('click', (e) => { if (e.target === addInstModal) addInstModal.classList.add('hidden'); });
 
+  document.body.addEventListener('institutionAdded', () => {
+    const current = institutionSelect.value;
+    fetch('/admin/institutions_options')
+      .then(r => r.text())
+      .then(html => { institutionSelect.innerHTML = html; institutionSelect.value = current; });
+  });
+
   (function(){
     const secretModal = document.getElementById('secretModal');
     const secretPassword = document.getElementById('secret-password');
