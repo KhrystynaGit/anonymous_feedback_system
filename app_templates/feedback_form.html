@@ -3,7 +3,7 @@
 {% block title %}Залиште відгук{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
+<div class="max-w-3xl mx-auto bg-white dark:bg-gray-700 p-4 sm:p-6 rounded-lg shadow">
   <h2 class="text-xl font-semibold mb-4">Залиште відгук для: <strong>{{ official_name }}</strong></h2>
 
   <form action="/submit" method="post" enctype="multipart/form-data" class="space-y-4" id="feedback-form">
@@ -12,7 +12,7 @@
     <!-- Тема -->
     <div>
       <label for="subject" class="block font-medium mb-1">Тема відгуку (до 75 символів)</label>
-      <input type="text" id="subject" name="subject" maxlength="75" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" required>
+      <input type="text" id="subject" name="subject" maxlength="75" class="form-input" required>
       <div class="text-sm text-gray-500 mt-1"><span id="subject-count">0</span>/75 символів</div>
     </div>
 
@@ -30,13 +30,13 @@
     <!-- Зміст відгуку -->
     <div>
       <label for="text" class="block font-medium mb-1">Зміст відгуку</label>
-      <textarea id="text" name="text" maxlength="5000" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" rows="6" required></textarea>
+      <textarea id="text" name="text" maxlength="5000" class="form-input" rows="6" required></textarea>
     </div>
 
     <!-- Секретний зміст -->
     <div>
       <label for="secret_text" class="block font-medium mb-1">Секретний зміст (не буде видно публічно)</label>
-      <textarea id="secret_text" name="secret_text" maxlength="5000" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="(необов'язково)"></textarea>
+      <textarea id="secret_text" name="secret_text" maxlength="5000" class="form-input" rows="3" placeholder="(необов'язково)"></textarea>
     </div>
 
     <!-- Файли -->

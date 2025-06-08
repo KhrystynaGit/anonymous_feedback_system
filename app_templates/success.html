@@ -1,15 +1,9 @@
 {% extends "base.html" %}
-
-{% block title %}Дякуємо за відгук{% endblock %}
-
+{% block title %}Дякуємо{% endblock %}
 {% block content %}
-<div class="flex flex-col items-center justify-center text-center bg-white p-8 rounded-lg shadow max-w-lg mx-auto">
-  <h3 class="text-2xl font-semibold text-success mb-4">✅ Дякуємо за ваш відгук!</h3>
-
-  <div class="space-y-2 text-sm text-gray-700">
-    <p><strong>Мова:</strong> {{ lang }}</p>
-  </div>
-
-  <a href="/" class="mt-6 inline-block bg-primary hover:bg-blue-700 text-white px-5 py-2 rounded shadow">← Назад</a>
-</div>
+<script>
+  localStorage.setItem('toastMessage', 'Дякуємо за ваш відгук!');
+  localStorage.setItem('toastType', 'success');
+  window.location.href = '/';
+</script>
 {% endblock %}
