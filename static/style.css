@@ -32,6 +32,7 @@ main {
 /* Dark theme overrides for Tailwind utility classes */
 body.dark .bg-white { background-color: #4b5563 !important; }
 body.dark .bg-gray-50 { background-color: #4b5563 !important; }
+body.dark .hover\:bg-gray-50:hover { background-color: #374151 !important; }
 body.dark .bg-gray-100 { background-color: #374151 !important; }
 body.dark .bg-gray-200 { background-color: #374151 !important; }
 body.dark .text-gray-800 { color: #f9fafb !important; }
