@@ -87,13 +87,19 @@ async def add_new_institution(
     }, headers=headers)
 
 @router.get("/admin/institutions_options", response_class=HTMLResponse)
-async def institutions_options(user: str = Depends(verify_credentials)):
+async def institutions_options(
+    current: str | None = None,
+    user: str = Depends(verify_credentials)
+):
     institutions = get_all_institutions()
-    options_html = (
-        '<option value="" disabled selected>Оберіть інституцію</option>' +
-        "".join(f'<option value="{inst.code}">{inst.official_name}</option>' for inst in institutions)
-    )
-    return HTMLResponse(content=options_html)
+    options = [
+        f'<option value="" disabled{" selected" if not current else ""}>'
+        'Оберіть інституцію</option>'
+    ]
+    for inst in institutions:
+        sel = ' selected' if current == inst.code else ''
+        options.append(f'<option value="{inst.code}"{sel}>{inst.official_name}</option>')
+    return HTMLResponse(content="".join(options))
 
 @router.get("/admin/change_password", response_class=HTMLResponse)
 async def change_password_form(request: Request, user: str = Depends(verify_credentials)):
