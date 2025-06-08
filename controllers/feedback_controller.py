@@ -62,11 +62,14 @@ async def submit_feedback(
         })
 
     attachments = []
+    feedback_folder = uuid4().hex
     for upload in files:
         if upload.filename:
-            os.makedirs(UPLOAD_DIR, exist_ok=True)
-            unique_name = f"{uuid4().hex}_{upload.filename}"
-            file_path = os.path.join(UPLOAD_DIR, unique_name)
+            safe_name = os.path.basename(upload.filename)
+            folder_path = os.path.join(UPLOAD_DIR, feedback_folder)
+            os.makedirs(folder_path, exist_ok=True)
+            unique_name = f"{uuid4().hex}_{safe_name}"
+            file_path = os.path.join(folder_path, unique_name)
             with open(file_path, "wb") as f:
                 content = await upload.read()
                 f.write(content)
