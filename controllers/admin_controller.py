@@ -10,7 +10,8 @@ from services.db_service import (
     get_feedback_secret_text_by_id_and_code,
     get_feedback_secret_meta_by_id_and_code,
     get_secret_view_password,
-    validate_institution_code
+    validate_institution_code,
+    get_attachments_for_feedback,
 )
 
 router = APIRouter()
@@ -151,3 +152,12 @@ async def get_secret_text(
         "secret_sentiment": sentiment,
         "secret_spam": spam
     })
+
+
+@router.get("/admin/attachments/{feedback_id}", response_class=HTMLResponse)
+async def attachments_view(request: Request, feedback_id: int, user: str = Depends(verify_credentials)):
+    files = get_attachments_for_feedback(feedback_id)
+    return templates.TemplateResponse(
+        "attachments_list.html",
+        {"request": request, "attachments": files, "feedback_id": feedback_id}
+    )

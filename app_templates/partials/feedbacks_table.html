@@ -48,9 +48,11 @@
           <span title="{{ fb[5] }}">{{ icons.get(fb[5]|lower, '❔') }}</span>
         </td>
         <td class="px-3 py-2 text-center">
-          {% for att in fb[11] %}
-            <a href="/{{ att[1] }}" target="_blank" class="text-blue-600 hover:underline">{{ att[0] }}</a>{% if not loop.last %}, {% endif %}
-          {% endfor %}
+          {% if fb[11]|length > 0 %}
+            <a href="/admin/attachments/{{ fb[0] }}" target="_blank" title="Переглянути файли" class="text-blue-600 hover:underline">📁 ({{ fb[11]|length }})</a>
+          {% else %}
+            –
+          {% endif %}
         </td>
         <td class="px-3 py-2 text-center">
           <div class="inline-flex items-center space-x-1 justify-center">
