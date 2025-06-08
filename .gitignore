@@ -9,7 +9,8 @@ __pycache__/
 *.db
 
 # Model files
-spam_model_dofinetuned2/
+spam_model/
+deleteme.txt
 
 # Uploaded files
 uploads/
