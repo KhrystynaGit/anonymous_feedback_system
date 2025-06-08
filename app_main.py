@@ -10,8 +10,16 @@ from controllers.admin_controller import router as admin_router
 from services.db_service import add_admin_user, verify_admin_user, set_secret_view_password, generate_random_password
 
 app = FastAPI()
+
+# Ensure uploads directory exists before mounting static files
+os.makedirs("uploads", exist_ok=True)
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.mount(
+    "/uploads",
+    StaticFiles(directory="uploads", check_dir=False),
+    name="uploads",
+)
 templates = Jinja2Templates(directory="app_templates")
 
 app.include_router(feedback_router)
