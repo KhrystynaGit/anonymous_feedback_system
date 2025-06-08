@@ -1,5 +1,5 @@
 import os, random, string
-from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, Float, func
+from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, Float, func, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
@@ -38,7 +38,7 @@ class Feedback(Base):
 class Attachment(Base):
     __tablename__ = "attachments"
     id = Column(Integer, primary_key=True)
-    feedback_id = Column(Integer, index=True)
+    feedback_id = Column(Integer, ForeignKey("feedbacks.id"), index=True)
     filename = Column(String, nullable=False)
     stored_path = Column(String, nullable=False)
     feedback = relationship("Feedback", back_populates="attachments")
