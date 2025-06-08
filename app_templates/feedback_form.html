@@ -41,8 +41,12 @@
 
     <!-- Файли -->
     <div>
-      <label for="files" class="block font-medium mb-1">Додайте файли (необов'язково)</label>
-      <input type="file" id="files" name="files" multiple class="w-full" />
+      <label class="block font-medium mb-1">Додайте файли (необов'язково)</label>
+      <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded p-4 text-center cursor-pointer hover:bg-graylight">
+        <p class="text-sm text-gray-600">Перетягніть файли сюди або натисніть для вибору (до 5 файлів)</p>
+        <input type="file" id="files" name="files" multiple class="hidden" />
+      </div>
+      <ul id="file-list" class="text-sm list-disc pl-5 mt-2"></ul>
     </div>
 
     {% if error %}
@@ -82,12 +86,55 @@
   });
 
   const fileInput = document.getElementById('files');
+  const dropZone = document.getElementById('drop-zone');
+  const fileList = document.getElementById('file-list');
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drop-zone-active');
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drop-zone-active');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drop-zone-active');
+    const dt = new DataTransfer();
+    Array.from(fileInput.files).forEach(f => dt.items.add(f));
+    Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+    if (dt.files.length > 5) {
+      alert('Максимум 5 файлів');
+      const limited = new DataTransfer();
+      Array.from(dt.files).slice(0,5).forEach(f => limited.items.add(f));
+      fileInput.files = limited.files;
+    } else {
+      fileInput.files = dt.files;
+    }
+    updateFileList();
+  });
+
   fileInput.addEventListener('change', () => {
     if (fileInput.files.length > 5) {
       alert('Максимум 5 файлів');
-      fileInput.value = '';
+      const dt = new DataTransfer();
+      Array.from(fileInput.files).slice(0,5).forEach(f => dt.items.add(f));
+      fileInput.files = dt.files;
     }
+    updateFileList();
   });
+
+  function updateFileList() {
+    fileList.innerHTML = '';
+    Array.from(fileInput.files).forEach(file => {
+      const li = document.createElement('li');
+      li.textContent = file.name;
+      fileList.appendChild(li);
+    });
+  }
 
     document.getElementById('feedback-form').addEventListener('submit', () => {
       tagsInput.value = selectedTags.join(',');
