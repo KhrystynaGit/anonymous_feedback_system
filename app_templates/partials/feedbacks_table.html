@@ -8,6 +8,7 @@
       <col class="w-[10%]" />
       <col class="w-[10%]" />
       <col class="w-[10%]" />
+      <col class="w-[10%]" />
     </colgroup>
     <thead class="bg-gray-100 text-sm font-semibold text-gray-700">
       <tr>
@@ -17,6 +18,7 @@
         <th class="px-3 py-2 text-center">Мова</th>
         <th class="px-3 py-2 text-center">Спам</th>
         <th class="px-3 py-2 text-center">Сентимент</th>
+        <th class="px-3 py-2 text-center">Файли</th>
         <th class="px-3 py-2 text-center">Секрет</th>
       </tr>
     </thead>
@@ -44,6 +46,11 @@
         <td class="px-3 py-2 text-center">
           {% set icons = {'very negative':'😡','negative':'😞','neutral':'😐','positive':'😊','very positive':'😄'} %}
           <span title="{{ fb[5] }}">{{ icons.get(fb[5]|lower, '❔') }}</span>
+        </td>
+        <td class="px-3 py-2 text-center">
+          {% for att in fb[11] %}
+            <a href="/{{ att[1] }}" target="_blank" class="text-blue-600 hover:underline">{{ att[0] }}</a>{% if not loop.last %}, {% endif %}
+          {% endfor %}
         </td>
         <td class="px-3 py-2 text-center">
           <div class="inline-flex items-center space-x-1 justify-center">

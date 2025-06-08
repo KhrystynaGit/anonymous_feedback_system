@@ -1,7 +1,7 @@
 import os, random, string
 from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, Float, func
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 
 # База даних
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///feedback.db")
@@ -33,6 +33,15 @@ class Feedback(Base):
     secret_sentiment = Column(String)
     secret_spam = Column(Boolean)
     secret_spam_score = Column(Float)
+    attachments = relationship("Attachment", back_populates="feedback", cascade="all, delete-orphan")
+
+class Attachment(Base):
+    __tablename__ = "attachments"
+    id = Column(Integer, primary_key=True)
+    feedback_id = Column(Integer, index=True)
+    filename = Column(String, nullable=False)
+    stored_path = Column(String, nullable=False)
+    feedback = relationship("Feedback", back_populates="attachments")
 
 class Admin(Base):
     __tablename__ = "admin"
@@ -121,6 +130,26 @@ def save_feedback_for_institution(
         )
         db.add(feedback)
         db.commit()
+        db.refresh(feedback)
+        return feedback.id
+    finally:
+        db.close()
+
+def save_attachments(feedback_id: int, attachments):
+    db = SessionLocal()
+    try:
+        for filename, stored_path in attachments:
+            att = Attachment(feedback_id=feedback_id, filename=filename, stored_path=stored_path)
+            db.add(att)
+        db.commit()
+    finally:
+        db.close()
+
+def get_attachments_for_feedback(feedback_id: int):
+    db = SessionLocal()
+    try:
+        atts = db.query(Attachment).filter_by(feedback_id=feedback_id).all()
+        return [(a.filename, a.stored_path) for a in atts]
     finally:
         db.close()
 
@@ -164,7 +193,20 @@ def load_all_feedback_for_institution(
 
         results = query.all()
         return [
-            (f.id, f.subject, f.text, f.secret_text, f.lang, f.sentiment, f.spam, f.tags, f.secret_sentiment, f.secret_spam, f.secret_spam_score)
+            (
+                f.id,
+                f.subject,
+                f.text,
+                f.secret_text,
+                f.lang,
+                f.sentiment,
+                f.spam,
+                f.tags,
+                f.secret_sentiment,
+                f.secret_spam,
+                f.secret_spam_score,
+                [(a.filename, a.stored_path) for a in f.attachments],
+            )
             for f in results
         ]
     finally:
