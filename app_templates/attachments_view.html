@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Файли відгуку №{{ feedback_id }}{% endblock %}
+
+{% block content %}
+<h2 class="text-xl font-semibold mb-4">Файли для відгуку {{ feedback_id }}</h2>
+<ul class="list-disc pl-6 space-y-2">
+  {% for name, path in attachments %}
+  <li><a href="/{{ path }}" class="text-blue-600 hover:underline" target="_blank">{{ name }}</a></li>
+  {% else %}
+  <li>Файлів немає</li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -54,16 +54,16 @@ async def submit_feedback(
     secret_text = (secret_text or "").strip()
     tags = tags.strip()
 
-    attachments = []
-    for upload in files:
-        if upload.filename:
-            os.makedirs(UPLOAD_DIR, exist_ok=True)
-            unique_name = f"{uuid4().hex}_{upload.filename}"
-            file_path = os.path.join(UPLOAD_DIR, unique_name)
-            with open(file_path, "wb") as f:
-                content = await upload.read()
-                f.write(content)
-            attachments.append((upload.filename, file_path))
+    attachment_files = [f for f in files if f.filename]
+    if len(attachment_files) > 5:
+        return templates.TemplateResponse(
+            "feedback_form.html",
+            {
+                "request": request,
+                "institution_code": institution_code,
+                "error": "Максимум 5 файлів."
+            },
+        )
 
     if len(subject) < 3:
         return templates.TemplateResponse("feedback_form.html", {
@@ -123,8 +123,19 @@ async def submit_feedback(
         secret_spam_score=score_secret
     )
 
-    if attachments:
-        save_attachments(feedback_id, attachments)
+    if attachment_files:
+        dest_dir = os.path.join(UPLOAD_DIR, str(feedback_id))
+        os.makedirs(dest_dir, exist_ok=True)
+        attachments = []
+        for upload in attachment_files:
+            unique_name = f"{uuid4().hex}_{upload.filename}"
+            file_path = os.path.join(dest_dir, unique_name)
+            with open(file_path, "wb") as f:
+                content = await upload.read()
+                f.write(content)
+            attachments.append((upload.filename, file_path))
+        if attachments:
+            save_attachments(feedback_id, attachments)
 
     return templates.TemplateResponse("success.html", {
         "request": request,
