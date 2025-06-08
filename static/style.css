@@ -39,7 +39,8 @@ body.dark .text-gray-700 { color: #e5e7eb !important; }
 
 /* Keep input text readable when switching themes */
 body.dark input,
-body.dark textarea {
+body.dark textarea,
+body.dark select {
   color: #000;
 }
 
@@ -52,6 +53,11 @@ textarea {
 textarea {
   resize: vertical;
   min-height: 120px;
+}
+
+/* Keep select text consistent across themes */
+select {
+  color: #000;
 }
 
 .table td, .table th {
