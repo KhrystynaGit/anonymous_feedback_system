@@ -21,19 +21,34 @@
   </script>
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="bg-gray-100 min-h-screen text-gray-800">
+<body class="min-h-screen">
 
   <!-- Шапка -->
-  <header class="bg-gray-200 shadow px-6 py-4">
+  <header class="shadow px-6 py-4">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <a href="/" class="text-3xl font-semibold text-primary select-none hover:no-underline">🛡️ Анонімна система відгуків</a>
+      <button id="theme-toggle" class="border rounded px-2 py-1">🌙</button>
     </div>
   </header>
 
   <!-- Контент -->
-  <main class="max-w-5xl mx-auto px-4 py-6 mt-6 bg-gray-50 rounded-lg shadow">
+  <main class="max-w-5xl mx-auto px-4 py-6 mt-6 rounded-lg shadow">
     {% block content %}{% endblock %}
   </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggle = document.getElementById('theme-toggle');
+      const stored = localStorage.getItem('theme');
+      if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark');
+      }
+      toggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+      });
+    });
+  </script>
 
 </body>
 </html>

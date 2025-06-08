@@ -1,7 +1,41 @@
+:root {
+  --bg-body: #f9fafb;
+  --text-color: #1f2937;
+  --bg-header: #e5e7eb;
+  --bg-content: #f9fafb;
+}
+
+body.dark {
+  --bg-body: #1f2937;
+  --text-color: #f9fafb;
+  --bg-header: #374151;
+  --bg-content: #4b5563;
+}
+
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f9fafb;
+  background-color: var(--bg-body);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
 }
+
+header {
+  background-color: var(--bg-header);
+  transition: background-color 0.3s;
+}
+
+main {
+  background-color: var(--bg-content);
+  transition: background-color 0.3s;
+}
+
+/* Dark theme overrides for Tailwind utility classes */
+body.dark .bg-white { background-color: #4b5563 !important; }
+body.dark .bg-gray-50 { background-color: #4b5563 !important; }
+body.dark .bg-gray-100 { background-color: #374151 !important; }
+body.dark .bg-gray-200 { background-color: #374151 !important; }
+body.dark .text-gray-800 { color: #f9fafb !important; }
+body.dark .text-gray-700 { color: #e5e7eb !important; }
 
 textarea {
   resize: vertical;
