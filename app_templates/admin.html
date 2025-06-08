@@ -86,15 +86,15 @@
 
 <!-- Модальні вікна -->
 <div id="addInstitutionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white dark:bg-gray-700 rounded-lg shadow-lg w-full max-w-md">
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
     <div id="modal-body" class="p-4 text-center">Завантаження...</div>
   </div>
 </div>
 
 <div id="secretModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white dark:bg-gray-700 rounded-lg p-6 w-full max-w-md shadow-lg">
+  <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
     <h2 class="text-lg font-semibold mb-2">Введіть пароль</h2>
-      <input type="password" id="secret-password" class="form-input mb-3" placeholder="Пароль" />
+    <input type="password" id="secret-password" class="w-full mb-3 border px-3 py-2 rounded" placeholder="Пароль" />
     <button id="check-secret-password" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Показати</button>
     <div id="secret-error" class="text-red-600 mt-2 text-sm"></div>
     <div id="secret-text-display" class="mt-4 whitespace-pre-wrap text-sm text-gray-800"></div>
@@ -104,13 +104,13 @@
 </div>
 
 <div id="changePasswordModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white dark:bg-gray-700 rounded-lg shadow-lg w-full max-w-md">
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
     <div id="changePasswordModalBody" class="p-4 text-center">Завантаження...</div>
   </div>
 </div>
 
 <div id="statsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white dark:bg-gray-700 rounded-lg p-6 w-full max-w-md">
+  <div class="bg-white rounded-lg p-6 w-full max-w-md">
     <h2 class="text-lg font-semibold mb-2">Статистика</h2>
     <div class="mb-2">
       <label for="stats-metric" class="mr-2">Параметр:</label>
