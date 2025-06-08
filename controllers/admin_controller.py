@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from services.auth_service import verify_credentials
+from services.auth_service import verify_credentials, hash_password
 from services.db_service import (
     add_institution, get_all_institutions, load_all_feedback_for_institution,
     verify_admin_user, update_admin_password,
@@ -119,7 +119,8 @@ async def change_password(
     elif not verify_admin_user(user, old_password):
         error = "Старий пароль неправильний."
     else:
-        update_admin_password(user, new_password)
+        hashed_password = hash_password(new_password).decode()
+        update_admin_password(user, hashed_password)
         success = "Пароль успішно змінено."
 
     return templates.TemplateResponse("change_password.html", {

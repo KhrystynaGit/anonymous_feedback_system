@@ -1,3 +1,4 @@
+#app_main.py — це головний керівник, який: Ініціалізує адмін-обліковий запис;Підключає маршрути для публічних і адмін-функцій;Роздає статичні файли й HTML-шаблони;Забезпечує запуск FastAPI.
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates

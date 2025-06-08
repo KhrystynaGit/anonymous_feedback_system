@@ -58,17 +58,3 @@
     </tbody>
   </table>
 </div>
-
-<!-- Делегування кліків для динамічних таблиць -->
-<script>
-  document.body.addEventListener('click', function(event) {
-    if (!event.target.classList.contains('show-more-btn')) return;
-    const btn = event.target;
-    const id = btn.getAttribute('data-id');
-    const contentEl = document.getElementById('content-' + id);
-    const fullText = contentEl.getAttribute('data-text');
-    const isExpanded = btn.textContent.trim() === 'Згорнути';
-    contentEl.textContent = isExpanded ? fullText.slice(0, 120) + '…' : fullText;
-    btn.textContent = isExpanded ? 'Показати більше' : 'Згорнути';
-  });
-</script>

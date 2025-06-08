@@ -55,11 +55,35 @@ async def submit_feedback(
             "institution_code": institution_code,
             "error": "Тема відгуку занадто коротка."
         })
+    if len(subject) > 255:
+        return templates.TemplateResponse("feedback_form.html", {
+            "request": request,
+            "institution_code": institution_code,
+            "error": "Тема відгуку занадто довга (макс. 255 символів)."
+        })
     if len(text) < 3:
         return templates.TemplateResponse("feedback_form.html", {
             "request": request,
             "institution_code": institution_code,
             "error": "Зміст відгуку занадто короткий."
+        })
+    if len(text) > 5000:
+        return templates.TemplateResponse("feedback_form.html", {
+            "request": request,
+            "institution_code": institution_code,
+            "error": "Зміст відгуку занадто довгий (макс. 5000 символів)."
+        })
+    if secret_text and len(secret_text) > 5000:
+        return templates.TemplateResponse("feedback_form.html", {
+            "request": request,
+            "institution_code": institution_code,
+            "error": "Секретний зміст занадто довгий (макс. 5000 символів)."
+        })
+    if tags and len(tags) > 255:
+        return templates.TemplateResponse("feedback_form.html", {
+            "request": request,
+            "institution_code": institution_code,
+            "error": "Занадто багато тегів або занадто довгий рядок тегів (макс. 255 символів)."
         })
 
     lang = detect_language(text)

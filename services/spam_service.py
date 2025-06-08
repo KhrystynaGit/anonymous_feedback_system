@@ -5,10 +5,10 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import os
 
 # Завантаження моделі з кореня проєкту
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "spam_model_dofinetuned2")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "spam_model")
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-model     = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
+model    = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
 
 # Якщо доступний GPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
