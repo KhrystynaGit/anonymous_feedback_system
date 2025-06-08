@@ -27,10 +27,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="bg-gray-100 dark:bg-gray-800 min-h-screen text-gray-800 dark:text-gray-200">
+<body class="bg-gray-100 dark:bg-gray-800 min-h-screen text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
   <!-- Шапка -->
-  <header class="bg-gray-200 dark:bg-graydark shadow px-6 py-4">
+  <header class="bg-gray-200 dark:bg-graydark shadow px-6 py-4 transition-colors duration-300">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <a href="/" class="text-3xl font-semibold text-primary select-none hover:no-underline">🛡️ Анонімна система відгуків</a>
       <button id="theme-toggle" class="text-xl px-3 py-1 rounded hover:bg-graylight dark:hover:bg-gray-700">🌓</button>
@@ -38,7 +38,7 @@
   </header>
 
   <!-- Контент -->
-  <main class="max-w-5xl mx-auto px-4 py-6 mt-6 bg-gray-50 dark:bg-gray-700 rounded-lg shadow">
+  <main class="max-w-5xl mx-auto px-4 py-6 mt-6 bg-gray-50 dark:bg-gray-700 rounded-lg shadow transition-colors duration-300">
     {% block content %}{% endblock %}
   </main>
 
