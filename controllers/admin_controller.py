@@ -162,10 +162,14 @@ async def get_secret_text(
 
 
 @router.get("/admin/stats")
-async def institution_stats(code: str, user: str = Depends(verify_credentials)):
+async def institution_stats(
+    code: str,
+    metric: str = "sentiment",
+    user: str = Depends(verify_credentials)
+):
     if not validate_institution_code(code):
         return JSONResponse({"error": "Invalid code"}, status_code=400)
-    stats = get_feedback_stats(code)
+    stats = get_feedback_stats(code, metric)
     return JSONResponse(stats)
 
 

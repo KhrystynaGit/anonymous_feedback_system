@@ -48,7 +48,7 @@
     </svg>
   </div>
 
-  <button id="openStats" class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700">Статистика</button>
+  <button id="openStats" class="bg-gray-200 text-gray-800 px-3 py-1 rounded hover:bg-gray-300">Статистика</button>
 
   <div id="qr-code-container"></div>
 </div>
@@ -112,6 +112,13 @@
 <div id="statsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
   <div class="bg-white rounded-lg p-6 w-full max-w-md">
     <h2 class="text-lg font-semibold mb-2">Статистика</h2>
+    <div class="mb-2">
+      <label for="stats-metric" class="mr-2">Параметр:</label>
+      <select id="stats-metric" class="border px-2 py-1 rounded">
+        <option value="sentiment">Сентимент</option>
+        <option value="spam">Спам</option>
+      </select>
+    </div>
     <div id="stats-content" class="space-y-1 text-sm"></div>
     <canvas id="stats-chart" class="mt-4 w-full h-48"></canvas>
     <button onclick="closeStatsModal()" class="mt-4 w-full bg-gray-200 text-gray-800 py-2 rounded hover:bg-gray-300">Закрити</button>
@@ -175,42 +182,64 @@
   const statsBtn = document.getElementById('openStats');
   const statsModal = document.getElementById('statsModal');
   const statsContent = document.getElementById('stats-content');
+  const metricSelect = document.getElementById('stats-metric');
   let statsChart;
-  statsBtn.addEventListener('click', () => {
+
+  function loadStats(){
     const code = institutionSelect.value;
     if(!code){alert('Оберіть інституцію.');return;}
-    fetch(`/admin/stats?code=${code}`)
+    fetch(`/admin/stats?code=${code}&metric=${metricSelect.value}`)
       .then(r=>r.json()).then(data=>{
         const total = data.total||0;
         if(total===0){
           statsContent.innerHTML = '<p>Немає даних</p>';
           if(statsChart) statsChart.destroy();
-        } else {
-          const pos = data.positive||0;
-          const neg = data.negative||0;
-          const spam = data.spam||0;
-          const posPct = (pos/total*100).toFixed(1);
-          const negPct = (neg/total*100).toFixed(1);
-          const spamPct = (spam/total*100).toFixed(1);
+        } else if(data.metric === 'spam'){
+          const spam = data.data.spam||0;
+          const ham = data.data.ham||0;
           statsContent.innerHTML = `
             <p>Всього: ${total}</p>
-            <p>Позитивних: ${pos} (${posPct}%)</p>
-            <p>Негативних: ${neg} (${negPct}%)</p>
-            <p>Спам: ${spam} (${spamPct}%)</p>`;
+            <p>Спам: ${spam}</p>
+            <p>Не спам: ${ham}</p>`;
           const ctx = document.getElementById('stats-chart').getContext('2d');
           if(statsChart) statsChart.destroy();
           statsChart = new Chart(ctx, {
             type: 'pie',
             data: {
-              labels: ['Позитивні','Негативні','Спам','Інші'],
-              datasets:[{data:[pos,neg,spam,total-pos-neg-spam], backgroundColor:['#16a34a','#dc2626','#a855f7','#d1d5db']}]
+              labels: ['Спам','Не спам'],
+              datasets:[{data:[spam,ham], backgroundColor:['#a855f7','#16a34a']}]
+            },
+            options:{legend:{display:false}}
+          });
+        } else {
+          const pos = data.data.positive||0;
+          const neg = data.data.negative||0;
+          const neutral = data.data.neutral||0;
+          const posPct = (pos/total*100).toFixed(1);
+          const negPct = (neg/total*100).toFixed(1);
+          const neuPct = (neutral/total*100).toFixed(1);
+          statsContent.innerHTML = `
+            <p>Всього: ${total}</p>
+            <p>Позитивних: ${pos} (${posPct}%)</p>
+            <p>Негативних: ${neg} (${negPct}%)</p>
+            <p>Нейтральних: ${neutral} (${neuPct}%)</p>`;
+          const ctx = document.getElementById('stats-chart').getContext('2d');
+          if(statsChart) statsChart.destroy();
+          statsChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+              labels: ['Позитивні','Негативні','Нейтральні'],
+              datasets:[{data:[pos,neg,neutral], backgroundColor:['#16a34a','#dc2626','#d1d5db']}]
             },
             options:{legend:{display:false}}
           });
         }
         statsModal.classList.remove('hidden');
       });
-  });
+  }
+
+  statsBtn.addEventListener('click', loadStats);
+  metricSelect.addEventListener('change', loadStats);
   function closeStatsModal(){ statsModal.classList.add('hidden'); }
   statsModal.addEventListener('click', (e)=>{ if(e.target===statsModal) closeStatsModal(); });
 

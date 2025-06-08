@@ -284,24 +284,48 @@ def generate_random_password(length=24):
     chars = string.ascii_letters + string.digits
     return ''.join(random.choice(chars) for _ in range(length))
 
-def get_feedback_stats(code: str) -> dict:
+def get_feedback_stats(code: str, metric: str = "sentiment") -> dict:
     db = SessionLocal()
     try:
-        total = db.query(func.count(Feedback.id)).filter_by(institution_code=code).scalar() or 0
-        positive = db.query(func.count(Feedback.id)).filter(
-            Feedback.institution_code == code,
-            func.lower(Feedback.sentiment).in_(["positive", "very positive"])
-        ).scalar() or 0
-        negative = db.query(func.count(Feedback.id)).filter(
-            Feedback.institution_code == code,
-            func.lower(Feedback.sentiment).in_(["negative", "very negative"])
-        ).scalar() or 0
-        spam = db.query(func.count(Feedback.id)).filter_by(institution_code=code, spam=True).scalar() or 0
-        return {
-            "total": total,
-            "positive": positive,
-            "negative": negative,
-            "spam": spam,
-        }
+        if metric == "spam":
+            spam_count = db.query(func.count(Feedback.id)).filter_by(
+                institution_code=code, spam=True
+            ).scalar() or 0
+            ham_count = db.query(func.count(Feedback.id)).filter_by(
+                institution_code=code, spam=False
+            ).scalar() or 0
+            return {
+                "metric": "spam",
+                "total": spam_count + ham_count,
+                "data": {"spam": spam_count, "ham": ham_count},
+            }
+        else:
+            total = db.query(func.count(Feedback.id)).filter_by(
+                institution_code=code
+            ).scalar() or 0
+            positive = db.query(func.count(Feedback.id)).filter(
+                Feedback.institution_code == code,
+                func.lower(Feedback.sentiment).in_([
+                    "positive",
+                    "very positive",
+                ])
+            ).scalar() or 0
+            negative = db.query(func.count(Feedback.id)).filter(
+                Feedback.institution_code == code,
+                func.lower(Feedback.sentiment).in_([
+                    "negative",
+                    "very negative",
+                ])
+            ).scalar() or 0
+            neutral = total - positive - negative
+            return {
+                "metric": "sentiment",
+                "total": total,
+                "data": {
+                    "positive": positive,
+                    "negative": negative,
+                    "neutral": neutral,
+                },
+            }
     finally:
         db.close()
